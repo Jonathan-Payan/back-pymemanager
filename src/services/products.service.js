@@ -94,7 +94,11 @@ const getProductPrices = (productId) => {
 
 const createProduct = async ({ code, name, supplier_id, category_id, weight, expiration_date, description, image_path }) => {
   try {
-    const [result] = await pool.promise().query('CALL create_product(?, ?, ?, ?, ?, ?, ?, ?, @p_result_code)', [code, name, supplier_id, category_id, weight, expiration_date, description, image_path]);
+    // Formatear la fecha utilizando el modelo Product
+    const formattedDate = expiration_date ? new Product({ expiration_date }).expiration_date : null;
+
+    const [result] = await pool.promise().query('CALL create_product(?, ?, ?, ?, ?, ?, ?, ?, @p_result_code)', [code, name, supplier_id, category_id, weight, formattedDate, description, image_path]);
+    
     const [getResult] = await pool.promise().query('SELECT @p_result_code as result_code');
     const resultCode = getResult[0].result_code;
     return resultCode;
@@ -103,6 +107,7 @@ const createProduct = async ({ code, name, supplier_id, category_id, weight, exp
     throw new Error("Error creating product");
   }
 };
+
 
 
 const updateProduct = async ({ code, name, supplier_id, category_id, weight, expiration_date, description, image_path }) => {

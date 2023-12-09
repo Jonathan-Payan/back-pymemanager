@@ -1,13 +1,31 @@
-const { getProducts, createProduct, updateProduct, deleteProduct } = require('../services/products.service');
+const {  getAllProducts,getProductByCode,createProduct, updateProduct, deleteProduct } = require('../services/products.service');
 
-const getProductsController = async (req, res, next) => {
+// Controlador para obtener todos los productos
+const getAllProductsController = async (req, res, next) => {
   try {
-    const Products = await getProducts(req.query);
-    res.json(Products);
+    const products = await getAllProducts();
+    res.json(products);
   } catch (err) {
     next(err);
   }
 };
+
+// Controlador para obtener un producto por Code
+const getProductByCodeController = async (req, res, next) => {
+  try {
+    const { productCode } = req.params;
+    const product = await getProductByCode(productCode);
+
+    if (product) {
+      res.json(product);
+    } else {
+      res.status(404).json({ message: 'Product not found' });
+    }
+  } catch (err) {
+    next(err);
+  }
+};
+
 
 const createProductController = async (req, res, next) => {
   try {
@@ -31,22 +49,22 @@ const createProductController = async (req, res, next) => {
 
 const updateProductController = async (req, res, next) => {
   try {
-    const { code, name, supplier_id, category_id, weight, expiration_date, description, image_path } = req.body;
+    const { code } = req.params;
+    const newData = req.body;
 
-    const resultCode = await updateProduct({ code, name, supplier_id, category_id, weight, expiration_date, description, image_path });
-    
-    if (resultCode === 1) {
-      return res.sendStatus(204); // 204 indica éxito sin contenido
-    } else if (resultCode === 0) {
-      return res.status(404).json({ message: "Error updating product. Product not found." });
+    const success = await updateProduct(code, newData);
+
+    if (success) {
+      res.sendStatus(204); // 204 indica éxito sin contenido
     } else {
-      return res.status(400).json({ message: "Error updating product" });
+      res.status(404).json({ message: 'Product not found or error updating product' });
     }
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: 'Internal server error' });
   }
 };
+
 
 const deleteProductController = async (req, res, next) => {
   try {
@@ -76,10 +94,11 @@ const deleteProductController = async (req, res, next) => {
 
 
 module.exports = {
-  getProductsController,
   createProductController,
   updateProductController,
   deleteProductController,
+  getProductByCodeController,
+  getAllProductsController,
 };
 
 

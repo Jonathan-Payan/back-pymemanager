@@ -4,7 +4,9 @@ const productsController = require('../controllers/products.controller');
 
 
 // Ruta para obtener todos los artículos o filtrarlos según parámetros opcionales
-router.get('/products', productsController.getProductsController);
+
+router.get('/products', productsController.getAllProductsController);
+router.get('/products/:productCode', productsController.getProductByCodeController);
 
 // Ruta para crear un nuevo artículo
 router.post('/products', productsController.createProductController);
@@ -13,7 +15,7 @@ router.post('/products', productsController.createProductController);
 router.delete('/products/:productId', productsController.deleteProductController);
 
 // Ruta para actualizar un artículo por id
-router.put('/products', productsController.updateProductController);
+router.put('/products/:code', productsController.updateProductController);
 
 
 

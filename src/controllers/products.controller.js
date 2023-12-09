@@ -50,10 +50,12 @@ const updateProductController = async (req, res, next) => {
 
 const deleteProductController = async (req, res, next) => {
   try {
-    const { code } = req.params;
+    const { productId } = req.params; // Ajusta el nombre del parámetro
+    console.log(`Intentando eliminar producto con código ${productId}`);
 
-    const resultCode = await deleteProduct(code);
-    
+    const resultCode = await deleteProduct(productId); // Ajusta el nombre del parámetro
+    console.log(`Resultado del procedimiento almacenado: ${resultCode}`);
+
     if (resultCode === 1) {
       return res.sendStatus(204); // 204 indica éxito sin contenido
     } else if (resultCode === 0) {
@@ -66,6 +68,7 @@ const deleteProductController = async (req, res, next) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 
 

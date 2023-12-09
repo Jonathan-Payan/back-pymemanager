@@ -291,8 +291,9 @@ END //
 
 DELIMITER ;
 
-DROP PROCEDURE IF EXISTS delete_product;
+use pymemanager;
 
+drop procedure if exists delete_product;
 DELIMITER //
 
 CREATE PROCEDURE delete_product(
@@ -300,14 +301,12 @@ CREATE PROCEDURE delete_product(
     OUT p_result_code INT
 )
 BEGIN
-    DECLARE productCount INT;
+    -- Intentar eliminar el producto y obtener el número de filas afectadas
+    DELETE FROM products WHERE code = p_code;
+    SET p_result_code = ROW_COUNT(); -- ROW_COUNT() devuelve el número de filas afectadas
 
-    -- Verificar si el producto existe por su código
-    SELECT COUNT(*) INTO productCount FROM products WHERE code = p_code;
-
-    -- Si el producto existe, eliminarlo
-    IF productCount > 0 THEN
-        DELETE FROM products WHERE code = p_code;
+    -- Si el número de filas afectadas es mayor que 0, se eliminó el producto con éxito
+    IF p_result_code > 0 THEN
         SET p_result_code = 1; -- 1 indica éxito
     ELSE
         SET p_result_code = 0; -- 0 indica que el producto no existe

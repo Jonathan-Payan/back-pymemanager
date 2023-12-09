@@ -10,7 +10,7 @@ router.get('/products', productsController.getProductsController);
 router.post('/products', productsController.createProductController);
 
 // Ruta para eliminar un artículo por id
-router.delete('/products', productsController.deleteProductController);
+router.delete('/products/:productId', productsController.deleteProductController);
 
 // Ruta para actualizar un artículo por id
 router.put('/products', productsController.updateProductController);

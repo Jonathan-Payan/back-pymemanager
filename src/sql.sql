@@ -65,6 +65,43 @@ CREATE TABLE product_prices (
 
 
 
+-- ------------------------SALES---------------------------------------------
+use pymemanager;
+
+drop table if exists customers;
+-- Create the Customers table
+CREATE TABLE customers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255),
+    address VARCHAR(255),
+    phone VARCHAR(20),
+    email VARCHAR(100),
+    website VARCHAR(100)
+);
+
+drop table if exists sales;
+
+-- Create the Sales table
+CREATE TABLE sales (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    customer_id INT,
+    sale_date DATE,
+    total DECIMAL(10, 2),
+    FOREIGN KEY (customer_id) REFERENCES customers(id)
+);
+
+drop table if exists sale_details;
+
+-- Create the SaleDetails table with taxes field
+CREATE TABLE sale_details (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    sale_id INT,
+    product_code VARCHAR(50), 
+    quantity INT,
+    taxes DECIMAL(10, 2),  
+    FOREIGN KEY (sale_id) REFERENCES sales(id),
+    FOREIGN KEY (product_code) REFERENCES products(code) 
+);
 
 
 
@@ -316,8 +353,66 @@ END //
 DELIMITER ;
 
 
--- ---------------------------------------------endProducts------------------------------------------------
 
+-- ------------------------SALES---------------------------------------------
+-- Reporte de Ventas Totales por Cliente:
+drop procedure if exists get_sales_by_client;
+
+
+DELIMITER //
+CREATE PROCEDURE get_sales_by_client()
+BEGIN
+    SELECT customers.name AS client_name, SUM(sales.total) AS total_sales
+    FROM sales
+    JOIN customers ON sales.customer_id = customers.id
+    GROUP BY customers.name;
+END //
+DELIMITER ;
+
+
+call get_sales_by_client();
+
+
+-- Reporte de Ventas por Período de Tiempo:
+DELIMITER //
+CREATE PROCEDURE get_sales_by_period(IN start_date DATE, IN end_date DATE)
+BEGIN
+    SELECT sale_date, SUM(total) AS total_sales
+    FROM sales
+    WHERE sale_date BETWEEN start_date AND end_date
+    GROUP BY sale_date;
+END //
+DELIMITER ;
+
+-- Gráfico de Distribución de Productos Vendidos:
+
+DELIMITER //
+CREATE PROCEDURE get_product_distribution()
+BEGIN
+    SELECT product_code, COUNT(*) AS quantity_sold
+    FROM sale_details
+    GROUP BY product_code;
+END //
+DELIMITER ;
+
+-- Gráfico de Ventas por Categoría de Producto:
+
+DELIMITER //
+CREATE PROCEDURE get_sales_by_category()
+BEGIN
+    SELECT categories.name AS category_name, SUM(sale_details.quantity) AS total_sales
+    FROM sale_details
+    JOIN products ON sale_details.product_code = products.code
+    JOIN categories ON products.category_id = categories.id
+    GROUP BY categories.name;
+END //
+DELIMITER ;
+
+
+-- ---------------------------------------------------------------------
+
+
+-- ---------------------------------------------endProducts------------------------------------------------
 
 -- Test data for the "categories" table
 INSERT INTO categories (id, name)
@@ -346,12 +441,40 @@ VALUES
     ('Proveedor C', 'Dirección C', '555-123-7777', 'proveedorC@example.com', 'www.proveedorC.com', 'Contacto C', '777-888-9999', 'contactoC@example.com');
 
 
--- Test data for the "products" table with image paths
+-- Products
 INSERT INTO products (code, name, supplier_id, category_id, weight, expiration_date, description, image_path)
 VALUES
-    ('P1001', 'Producto 1', 1, 1, 1.25, '2023-12-31', 'Este es el primer producto de prueba con una descripción detallada.', '/path/to/image1.jpg'),
-    ('P1002', 'Producto 2', 2, 2, 0.75, '2023-11-30', 'El segundo producto de prueba con una breve descripción.', '/path/to/image2.jpg'),
-    ('P1003', 'Producto 3', 3, 1, 2.50, '2024-02-28', 'Producto 3 es otro ejemplo con una descripción completa.', '/path/to/image3.jpg');
+('P1001', 'Producto 1', 1, 1, 1.25, '2023-12-31', 'Este es el primer producto de prueba con una descripción detallada.', '/path/to/image1.jpg'),
+('P1002', 'Producto 2', 2, 2, 0.75, '2023-11-30', 'El segundo producto de prueba con una breve descripción.', '/path/to/image2.jpg'),
+('P1003', 'Producto 3', 3, 1, 2.50, '2024-02-28', 'Producto 3 es otro ejemplo con una descripción completa.', '/path/to/image3.jpg'),
+('P1004', 'Producto 4', 1, 3, 1.50, '2023-12-15', 'Descripción del Producto 4.', '/path/to/image4.jpg'),
+('P1005', 'Producto 5', 2, 4, 0.90, '2023-12-20', 'Descripción del Producto 5.', '/path/to/image5.jpg'),
+('P1006', 'Producto 6', 3, 5, 3.00, '2024-01-10', 'Descripción del Producto 6.', '/path/to/image6.jpg'),
+('P1007', 'Producto 7', 1, 6, 2.25, '2024-03-01', 'Descripción del Producto 7.', '/path/to/image7.jpg'),
+('P1008', 'Producto 8', 2, 7, 1.80, '2023-12-25', 'Descripción del Producto 8.', '/path/to/image8.jpg'),
+('P1009', 'Producto 9', 3, 8, 2.75, '2024-01-15', 'Descripción del Producto 9.', '/path/to/image9.jpg'),
+('P1010', 'Producto 10', 1, 9, 1.20, '2023-12-18', 'Descripción del Producto 10.', '/path/to/image10.jpg'),
+('P1011', 'Producto 11', 2, 10, 2.00, '2024-02-15', 'Descripción del Producto 11.', '/path/to/image11.jpg'),
+('P1012', 'Producto 12', 3, 11, 0.95, '2024-01-05', 'Descripción del Producto 12.', '/path/to/image12.jpg'),
+('P1013', 'Producto 13', 1, 12, 1.75, '2024-03-05', 'Descripción del Producto 13.', '/path/to/image13.jpg'),
+('P1014', 'Producto 14', 2, 13, 2.10, '2023-12-28', 'Descripción del Producto 14.', '/path/to/image14.jpg'),
+('P1015', 'Producto 15', 3, 14, 1.30, '2024-02-10', 'Descripción del Producto 15.', '/path/to/image15.jpg'),
+('P1016', 'Producto 16', 1, 15, 2.50, '2024-01-20', 'Descripción del Producto 16.', '/path/to/image16.jpg'),
+('P1017', 'Producto 17', 2, 1, 1.15, '2023-12-22', 'Descripción del Producto 17.', '/path/to/image17.jpg'),
+('P1018', 'Producto 18', 3, 2, 1.90, '2024-02-20', 'Descripción del Producto 18.', '/path/to/image18.jpg'),
+('P1019', 'Producto 19', 1, 3, 2.25, '2023-12-23', 'Descripción del Producto 19.', '/path/to/image19.jpg'),
+('P1020', 'Producto 20', 2, 4, 0.80, '2024-01-25', 'Descripción del Producto 20.', '/path/to/image20.jpg'),
+('P1021', 'Producto 21', 3, 5, 1.50, '2023-12-26', 'Descripción del Producto 21.', '/path/to/image21.jpg'),
+('P1022', 'Producto 22', 1, 6, 2.10, '2024-02-25', 'Descripción del Producto 22.', '/path/to/image22.jpg'),
+('P1023', 'Producto 23', 2, 7, 1.25, '2024-01-30', 'Descripción del Producto 23.', '/path/to/image23.jpg'),
+('P1024', 'Producto 24', 3, 8, 2.00, '2023-12-29', 'Descripción del Producto 24.', '/path/to/image24.jpg'),
+('P1025', 'Producto 25', 1, 9, 0.95, '2024-02-05', 'Descripción del Producto 25.', '/path/to/image25.jpg'),
+('P1026', 'Producto 26', 2, 10, 1.80, '2023-12-31', 'Descripción del Producto 26.', '/path/to/image26.jpg'),
+('P1027', 'Producto 27', 3, 11, 2.40, '2024-02-28', 'Descripción del Producto 27.', '/path/to/image27.jpg'),
+('P1028', 'Producto 28', 1, 12, 1.10, '2024-01-02', 'Descripción del Producto 28.', '/path/to/image28.jpg'),
+('P1029', 'Producto 29', 2, 13, 1.65, '2023-12-24', 'Descripción del Producto 29.', '/path/to/image29.jpg'),
+('P1030', 'Producto 30', 3, 14, 2.20, '2024-03-02', 'Descripción del Producto 30.', '/path/to/image30.jpg');
+
 
 INSERT INTO product_prices (product_id, price, date) VALUES
 ('P1001', 10990, '2023-12-01'),
@@ -425,4 +548,62 @@ INSERT INTO role_permissions (role_id, permission_id) VALUES
 (8, 1), -- Cliente puede ver información general
 (9, 1), -- Usuario tiene acceso básico
 (10, 4);-- Proveedor puede gestionar inventario
+
+
+
+  -- Datos de prueba para la tabla de clientes
+INSERT INTO customers (name, address, phone, email, website)
+VALUES
+    ('Cliente A', 'Dirección A', '123-456-7890', 'clienteA@example.com', 'www.clienteA.com'),
+    ('Cliente B', 'Dirección B', '987-654-3210', 'clienteB@example.com', 'www.clienteB.com'),
+    ('Cliente C', 'Dirección C', '555-123-7777', 'clienteC@example.com', 'www.clienteC.com'),
+    ('Cliente D', 'Dirección D', '111-222-3333', 'clienteD@example.com', 'www.clienteD.com'),
+    ('Cliente E', 'Dirección E', '444-555-6666', 'clienteE@example.com', 'www.clienteE.com'),
+    ('Cliente F', 'Dirección F', '777-888-9999', 'clienteF@example.com', 'www.clienteF.com'),
+    ('Cliente G', 'Dirección G', '999-000-1111', 'clienteG@example.com', 'www.clienteG.com'),
+    ('Cliente H', 'Dirección H', '222-333-4444', 'clienteH@example.com', 'www.clienteH.com'),
+    ('Cliente I', 'Dirección I', '555-666-7777', 'clienteI@example.com', 'www.clienteI.com'),
+    ('Cliente J', 'Dirección J', '888-999-0000', 'clienteJ@example.com', 'www.clienteJ.com');
+
+-- Datos de prueba para la tabla de ventas
+INSERT INTO sales (customer_id, sale_date, total)
+VALUES
+    (1, '2023-12-01', 150.75),
+    (2, '2023-12-02', 200.50),
+    (3, '2023-12-03', 75.25),
+    (4, '2023-12-04', 120.00),
+    (5, '2023-12-05', 90.80),
+    (6, '2023-12-06', 180.30),
+    (7, '2023-12-07', 250.00),
+    (8, '2023-12-08', 130.50),
+    (9, '2023-12-09', 95.75),
+    (10, '2023-12-10', 110.20);
+
+-- Datos de prueba para la tabla de detalles de ventas
+-- SaleDetails
+INSERT INTO sale_details (sale_id, product_code, quantity, taxes)
+VALUES
+(1, 'P1001', 2, 0.19),  -- Venta 1, Producto 1, Cantidad 2, Impuesto fijo del 19%
+(1, 'P1002', 1, 0.19),  -- Venta 1, Producto 2, Cantidad 1, Impuesto fijo del 19%
+(2, 'P1003', 3, 0.19),  -- Venta 2, Producto 3, Cantidad 3, Impuesto fijo del 19%
+(2, 'P1004', 1, 0.19),  -- Venta 2, Producto 4, Cantidad 1, Impuesto fijo del 19%
+(3, 'P1005', 2, 0.19),  -- Venta 3, Producto 5, Cantidad 2, Impuesto fijo del 19%
+(3, 'P1006', 1, 0.19),  -- Venta 3, Producto 6, Cantidad 1, Impuesto fijo del 19%
+(4, 'P1007', 3, 0.19),  -- Venta 4, Producto 7, Cantidad 3, Impuesto fijo del 19%
+(4, 'P1008', 2, 0.19),  -- Venta 4, Producto 8, Cantidad 2, Impuesto fijo del 19%
+(5, 'P1009', 1, 0.19),  -- Venta 5, Producto 9, Cantidad 1, Impuesto fijo del 19%
+(5, 'P1010', 2, 0.19),  -- Venta 5, Producto 10, Cantidad 2, Impuesto fijo del 19%
+(6, 'P1011', 1, 0.19),  -- Venta 6, Producto 11, Cantidad 1, Impuesto fijo del 19%
+(6, 'P1012', 3, 0.19),  -- Venta 6, Producto 12, Cantidad 3, Impuesto fijo del 19%
+(7, 'P1013', 2, 0.19),  -- Venta 7, Producto 13, Cantidad 2, Impuesto fijo del 19%
+(7, 'P1014', 1, 0.19),  -- Venta 7, Producto 14, Cantidad 1, Impuesto fijo del 19%
+(8, 'P1015', 3, 0.19),  -- Venta 8, Producto 15, Cantidad 3, Impuesto fijo del 19%
+(8, 'P1016', 2, 0.19),  -- Venta 8, Producto 16, Cantidad 2, Impuesto fijo del 19%
+(9, 'P1017', 1, 0.19),  -- Venta 9, Producto 17, Cantidad 1, Impuesto fijo del 19%
+(9, 'P1018', 2, 0.19),  -- Venta 9, Producto 18, Cantidad 2, Impuesto fijo del 19%
+(10, 'P1019', 3, 0.19),  -- Venta 10, Producto 19, Cantidad 3, Impuesto fijo del 19%
+(10, 'P1020', 1, 0.19)  -- Venta 10, Producto 20, Cantidad 1, Impuesto fijo del 19%
+
+
+
 

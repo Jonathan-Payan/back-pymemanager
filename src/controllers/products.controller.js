@@ -34,11 +34,11 @@ const createProductController = async (req, res, next) => {
     const resultCode = await createProduct({ code, name, supplier_id, category_id, weight, expiration_date, description, image_path });
     
     if (resultCode === 1) {
-      return res.sendStatus(201);
+      res.sendStatus(201);
     } else if (resultCode === 0) {
-      return res.status(400).json({ message: "Error creating product. Product already exists." });
+       res.status(400).json({ message: "Error creating product. Product already exists." });
     } else {
-      return res.status(400).json({ message: "Error creating product" });
+       res.status(400).json({ message: "Error creating product" });
     }
   } catch (err) {
     console.error(err);

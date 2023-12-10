@@ -76,9 +76,10 @@ const getProductPrices = (productId) => {
 const createProduct = async ({ code, name, supplier_id, category_id, weight, expiration_date, description, image_path }) => {
   try {
     // Formatear la fecha utilizando el modelo Product
-    const formattedDate = expiration_date ? new Product({ expiration_date }).expiration_date : null;
+    const formattedExpirationDate = expiration_date ? new Date(expiration_date).toISOString().slice(0, 10) : null;
 
-    const [result] = await pool.promise().query('CALL create_product(?, ?, ?, ?, ?, ?, ?, ?, @p_result_code)', [code, name, supplier_id, category_id, weight, formattedDate, description, image_path]);
+
+    const [result] = await pool.promise().query('CALL create_product(?, ?, ?, ?, ?, ?, ?, ?, @p_result_code)', [code, name, supplier_id, category_id, weight, formattedExpirationDate, description, image_path]);
     
     const [getResult] = await pool.promise().query('SELECT @p_result_code as result_code');
     const resultCode = getResult[0].result_code;
@@ -140,12 +141,17 @@ const deleteProduct = async (code) => {
     const [result] = await pool.promise().query('CALL delete_product(?, @p_result_code)', [code]);
     const [getResult] = await pool.promise().query('SELECT @p_result_code as result_code');
     const resultCode = getResult[0].result_code;
+
+    // Agrega un registro de depuración
+    console.log(`Resultado del procedimiento almacenado para el producto ${code}: ${resultCode}`);
+
     return resultCode;
   } catch (error) {
     console.error(error);
     throw new Error("Error deleting product");
   }
 };
+
 
 
 module.exports = {
